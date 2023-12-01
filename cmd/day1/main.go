@@ -1,0 +1,18 @@
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/criscokid/aoc2023/internal/fileinput"
+)
+
+func main() {
+	file_path := "small_input.txt"
+	lines, err := fileinput.ReadLines(file_path)
+	if err != nil {
+		log.Fatal(err)
+	} 
+
+	fmt.Print(lines)
+}
