@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/criscokid/aoc2023/internal/fileinput"
+	"github.com/criscokid/aoc2023/internal/stringutils"
 )
 
 var diceInBag = map[string]int {
@@ -86,7 +87,7 @@ func parseDrawSet(input string) (drawSet){
 }
 
 func parseVisibleDice(input string) visibleDraw {
-	diceParts := strings.Split(strings.TrimSpace(input), " ")
+	diceParts := stringutils.TrimAndSplit(input, " ")
 	color := strings.TrimSpace(diceParts[1])
 	count, err := strconv.Atoi(strings.TrimSpace(diceParts[0]))
 	if err != nil {
