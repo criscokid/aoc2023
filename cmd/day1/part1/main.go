@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/criscokid/aoc2023/internal/fileinput"
+	"github.com/criscokid/aoc2023/internal/mathutils"
 )
 
 var numberRunes = []rune{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}
@@ -29,7 +30,9 @@ func main() {
 		}
 		values = append(values, numVal)
 	}
-	fmt.Println(sum(values))
+
+	sum := mathutils.SumSlice(values, func(v int) int { return v })
+	fmt.Println(sum)
 
 }
 
@@ -48,12 +51,4 @@ func getNumberFromLineRunes(numbers []rune) (int, error) {
 	sb.WriteRune(numbers[0])
 	sb.WriteRune(numbers[len(numbers)-1])
 	return strconv.Atoi(sb.String())
-}
-
-func sum(values []int) int {
-	total := 0
-	for _, n := range values {
-		total = total + n
-	}
-	return total
 }

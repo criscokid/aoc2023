@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/criscokid/aoc2023/internal/fileinput"
+	"github.com/criscokid/aoc2023/internal/mathutils"
 )
 
 var valuesMap = map[string]string{
@@ -55,7 +56,8 @@ func main() {
 		}
 		values = append(values, numVal)
 	}
-	fmt.Println(sum(values))
+	sum := mathutils.SumSlice(values, func(v int) int { return v })
+	fmt.Println(sum)
 }
 
 func findNumbers(input string) []rune {
