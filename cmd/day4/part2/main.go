@@ -62,48 +62,22 @@ func parseGameId(input string) game {
 
 func parseGameNumbers(game *game, input string) {
 	numberParts := strings.Split(input, " | ")
-	foundNumReader := strings.NewReader(numberParts[1])
-	for {
-		num := make([]byte, 2)
-		_, err := foundNumReader.Read(num)
-		if err != nil {
-			break
-		}
-
-		numStr := strings.TrimSpace(string(num))
-		val, err := strconv.Atoi(numStr)
+	fields := strings.Fields(numberParts[1])
+	for _, v := range fields {
+		num, err := strconv.Atoi(v)
 		if err != nil {
 			log.Fatal(err)
 		}
-		game.numbersFound = append(game.numbersFound, val)
-
-		space := make([]byte, 1)
-		_, err = foundNumReader.Read(space)
-		if err != nil {
-			break
-		}
+		game.numbersFound = append(game.numbersFound, num)
 	}
 
-	winningNumReader := strings.NewReader(numberParts[0])
-	for {
-		num := make([]byte, 2)
-		_, err := winningNumReader.Read(num)
-		if err != nil {
-			break
-		}
-
-		numStr := strings.TrimSpace(string(num))
-		val, err := strconv.Atoi(numStr)
+	fields = strings.Fields(numberParts[0])
+	for _, v := range fields {
+		num, err := strconv.Atoi(v)
 		if err != nil {
 			log.Fatal(err)
 		}
-		game.winningNumbers = append(game.winningNumbers, val)
-
-		space := make([]byte, 1)
-		_, err = winningNumReader.Read(space)
-		if err != nil {
-			break
-		}
+		game.winningNumbers = append(game.winningNumbers, num)
 	}
 }
 
