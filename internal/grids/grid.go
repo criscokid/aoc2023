@@ -13,8 +13,20 @@ func NewGrid() Grid {
 	return Grid{data: data}
 }
 
+func NewGridWithRows(input []string) Grid {
+	grid := NewGrid()
+	grid.AddRows(input)
+	return grid
+}
+
 func (g *Grid) AddRow(input string) {
 	g.data = append(g.data, []rune(input))
+}
+
+func (g *Grid) AddRows(input []string) {
+	for _, v := range input {
+		g.AddRow(v)
+	}
 }
 
 type GridReader struct {
@@ -119,4 +131,22 @@ func (gr GridReader) GetCurrentCoords() GridCoords {
 
 func (gr *GridReader) SetCurrentCoords(gc GridCoords) {
 	gr.currentCoords = gc
+}
+
+func (gr *GridReader) TryMoveUp() (bool) {
+	if gr.currentCoords.y - 1 < 0 {
+		return false
+	}
+
+	gr.currentCoords.y -= 1
+	return true
+}
+
+func (gr *GridReader) TryMoveDown() (bool) {
+	if gr.currentCoords.y + 1 > len(gr.data) {
+		return false
+	}
+
+	gr.currentCoords.y += 1
+	return true
 }

@@ -21,13 +21,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	grid := grids.NewGrid()
-
-	for _, line := range lines {
-		grid.AddRow(line)
-	}
-
+	grid := grids.NewGridWithRows(lines)
 	reader := grids.NewGridReader(grid)
+
 	connectedVals := []string{}
 	main_loop:
 	for {
