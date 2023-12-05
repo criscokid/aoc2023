@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/criscokid/aoc2023/internal/fileinput"
+	"github.com/criscokid/aoc2023/internal/mathutils"
 )
 
 type seed struct {
@@ -31,6 +32,12 @@ func main() {
 	maps := [][]srcDestMap{}
 
 	seeds := parseSeeds(lines[0])
+
+	totalVals := mathutils.SumSlice(seeds, func(s seed) int {
+		return s.stride
+	})
+
+	fmt.Printf("Total seeds: %d\n", totalVals)
 
 	tempMaps := []srcDestMap{}
 	for i := 1; i < len(lines); i++ {
