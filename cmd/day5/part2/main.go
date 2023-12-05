@@ -146,11 +146,13 @@ func findLocation(maps [][]srcDestMap, val int) int {
 }
 
 func findLowestLocationForSeed(maps [][]srcDestMap, s seed) int {
-	locations := []int{}
+	minLoc := 0
 	max := s.start + s.stride
 	for i := s.start; i <= max; i++ {
 		loc := findLocation(maps, i)
-		locations = append(locations, loc)
+		if minLoc == 0 || loc < minLoc {
+			minLoc = loc
+		}
 	}
-	return slices.Min(locations)
+	return minLoc
 }
