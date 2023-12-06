@@ -8,3 +8,17 @@ func SumSlice[S ~[]E, E any, N int|float32|float64](s S, f func(E) N) N {
 	}
 	return sum
 }
+
+func IntMax(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func IntMin(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}

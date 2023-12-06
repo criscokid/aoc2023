@@ -59,7 +59,6 @@ func main() {
 		maps = append(maps, tempMaps)
 	}
 
-	locations := []int{}
 	
 	num_jobs := len(seeds)
 	jobs := make(chan seed, num_jobs)
@@ -79,13 +78,14 @@ func main() {
 	}
 	close(jobs)
 
+	min := 0
 	for a := 0; a < num_jobs; a++ {
 		loc := <-results
-		locations = append(locations, loc)
+		if min == 0 || loc < min {
+			min = loc
+		}
 	}
 
-	fmt.Println(locations)
-	min := slices.Min(locations)
 	fmt.Println(min)
 }
 
