@@ -66,9 +66,7 @@ func main() {
 	}
 
 	for i := 0; i < len(hands); i++ {
-		fmt.Println(hands[i])
 		str := findStrength(hands[i])
-		fmt.Println(textResult[str])
 		hands[i].strength = str
 	}
 
@@ -96,7 +94,7 @@ func parseHand(input string) hand {
 
 func findStrength(h hand) int {
 	counts := charCounts(h.cards)
-	hasJ := counts[0].char == 'J'
+	jCount, hasJ := counts['J']
 	//Five of a kind
 	if len(counts) == 1 {
 		return FiveOfAKind
@@ -119,7 +117,7 @@ func findStrength(h hand) int {
 
 	if len(counts) == 3 {
 		for _, v := range counts {
-			if v.count == 3 {
+			if v == 3 {
 				if hasJ {
 					return FourOfAKind
 				}
@@ -128,7 +126,7 @@ func findStrength(h hand) int {
 		}
 
 		if hasJ {
-			if counts[0].count == 2 {
+			if jCount == 2 {
 				return FourOfAKind
 			}
 			return FullHouse
@@ -139,7 +137,7 @@ func findStrength(h hand) int {
 
 	if len(counts) == 2 {
 		for _, v := range counts {
-			if v.count == 4 {
+			if v == 4 {
 				if hasJ {
 					return FiveOfAKind
 				}
@@ -155,12 +153,7 @@ func findStrength(h hand) int {
 	return HighCard
 }
 
-type charCount struct {
-	char  rune
-	count int
-}
-
-func charCounts(input string) []charCount {
+func charCounts(input string) map[rune]int {
 	charMap := map[rune]int{}
 	for _, r := range input {
 		_, ok := charMap[r]
@@ -170,16 +163,7 @@ func charCounts(input string) []charCount {
 			charMap[r] = 1
 		}
 	}
-	counts := []charCount{}
-	for k, v := range charMap {
-		counts = append(counts, charCount{char: k, count: v})
-	}
-
-	slices.SortFunc(counts, func(a, b charCount) int {
-		return a.Compare(b)
-	})
-
-	return counts
+	return charMap
 }
 
 func (h hand) Compare(other hand) int {
@@ -199,8 +183,4 @@ func (h hand) Compare(other hand) int {
 	}
 
 	return 0
-}
-
-func (c charCount) Compare(other charCount) int {
-	return cmp.Compare(cards[c.char], cards[other.char])
 }
