@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/criscokid/aoc2023/internal/fileinput"
+	"github.com/criscokid/aoc2023/internal/mathutils"
 )
 
 type node struct {
@@ -42,7 +43,7 @@ func main() {
 
 	fmt.Println(moveToReachZ)
 
-	result := LCM(moveToReachZ[0], moveToReachZ[1], moveToReachZ[2:]...)
+	result := mathutils.LCM(moveToReachZ[0], moveToReachZ[1], moveToReachZ[2:]...)
 	fmt.Println(result)
 }
 
@@ -85,24 +86,4 @@ func moves(start string, endingIn rune, nodeMap map[string]node, order []string)
 		currentNode = nodeMap[newNode]
 	}
 	return moves, newNode
-}
-
-func GCD(a, b int) int {
-	for b != 0 {
-		t := b
-		b = a % b
-		a = t
-	}
-	return a
-}
-
-// find Least Common Multiple (LCM) via GCD
-func LCM(a, b int, integers ...int) int {
-	result := a * b / GCD(a, b)
-
-	for i := 0; i < len(integers); i++ {
-		result = LCM(result, integers[i])
-	}
-
-	return result
 }
