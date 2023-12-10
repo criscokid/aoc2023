@@ -20,7 +20,9 @@ func main() {
 	rows := parseValues(lines)
 	exSum := 0
 	for i := 0; i < len(rows); i++ {
-		exValue := findExtroplatedValue(rows[i])
+		row := rows[i]
+		slices.Reverse(row)
+		exValue := findExtroplatedValue(row)
 		exSum += exValue
 	}
 	fmt.Println()
@@ -47,7 +49,10 @@ func parseValues(input []string) [][]int {
 
 func findExtroplatedValue(row []int) int {
 	currentRow := row
-	leftValues := []int{ currentRow[0] }
+	fmt.Println()
+	fmt.Println(currentRow)
+	exValue := row[len(row)-1]
+	fmt.Println(exValue)
 	for {
 		newRow := []int{}
 		allZero := true
@@ -61,22 +66,15 @@ func findExtroplatedValue(row []int) int {
 			}
 		}
 		currentRow = newRow
-		if allZero {
+		fmt.Println(currentRow)
+		if allZero || len(currentRow) == 1 {
 			break
 		} else {
-			leftValues = append(leftValues, currentRow[0])
+			exValue += currentRow[len(currentRow)-1]
 		}
+
+		fmt.Println(exValue)
 	}
 
-	fmt.Println(leftValues)
-	slices.Reverse(leftValues)
-	total := 0
-
-	for i := 0; i < len(leftValues); i++ {
-		fmt.Println(total)
-		total = leftValues[i] - total
-	}
-	fmt.Println(total)
-
-	return total
+	return exValue
 }
