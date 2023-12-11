@@ -1,16 +1,17 @@
 package grids
 
 import (
+	"fmt"
 	"io"
 )
 
 type Grid struct {
-	data [][]rune
+	Data [][]rune
 }
 
 func NewGrid() Grid {
 	data := make([][]rune, 0)
-	return Grid{data: data}
+	return Grid{Data: data}
 }
 
 func NewGridWithRows(input []string) Grid {
@@ -20,7 +21,7 @@ func NewGridWithRows(input []string) Grid {
 }
 
 func (g *Grid) AddRow(input string) {
-	g.data = append(g.data, []rune(input))
+	g.Data = append(g.Data, []rune(input))
 }
 
 func (g *Grid) AddRows(input []string) {
@@ -35,45 +36,82 @@ type GridReader struct {
 }
 
 type GridCoords struct {
-	x int
-	y int
+	X int
+	Y int
 }
 
 type AdjResult struct {
 	GridCoords
 	Char rune
+	Direction
 }
 
+type Direction int
+
+const (
+	UP Direction = iota
+	DOWN
+	LEFT
+	RIGHT
+	UP_LEFT
+	UP_RIGHT
+	DOWN_LEFT
+	DOWN_RIGHT
+)
+
+var mainDirections []Direction = []Direction{UP, DOWN, LEFT, RIGHT}
+var diagonalDirections []Direction = []Direction{UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT}
+
 func NewGridReader(grid Grid) GridReader {
-	return GridReader{Grid: grid, currentCoords: GridCoords{x: 0, y: 0}}
+	return GridReader{Grid: grid, currentCoords: GridCoords{X: 0, Y: 0}}
 }
 
 func (gr *GridReader) CurrentValue() rune {
-	return gr.data[gr.currentCoords.y][gr.currentCoords.x]
+	return gr.Data[gr.currentCoords.Y][gr.currentCoords.X]
+}
+
+func (gr* GridReader) SetCurrentValue(v rune) {
+	gr.Data[gr.currentCoords.Y][gr.currentCoords.X] = v
 }
 
 func (gr *GridReader) Advance() error {
 	return gr.advanceCoords()
 }
 
-func (gr GridReader) GetAdjacentValues() []AdjResult {
-	coords := gr.findAdjuscentCoords()
+func (gr *GridReader) AdvanceUntil(v rune) bool {
+	for gr.Data[gr.currentCoords.Y][gr.currentCoords.X] != v {
+		err := gr.advanceCoords()
+		if err == io.EOF {
+			return false
+		}
+	}
+	return true
+}
+
+func (gr GridReader) GetAdjacentValues(includeDiagonal bool) []AdjResult {
+	directions := mainDirections
+	if includeDiagonal {
+		directions = append(directions, diagonalDirections...)
+	}
 	values := []AdjResult{}
-	for _, v := range coords {
-		char := gr.data[v.y][v.x]
-		values = append(values, AdjResult{Char: char, GridCoords: v})
+	for _, d := range directions {
+		ok, coords := gr.getCoordsForDIrection(d)
+		if ok {
+			char := gr.Data[coords.Y][coords.X]
+			values = append(values, AdjResult{Char: char, GridCoords: coords, Direction: d})
+		}
 	}
 	return values
 }
 
 func (gr *GridReader) advanceCoords() error {
 	coords := gr.currentCoords
-	coords.x += 1
-	if coords.x >= len(gr.data[gr.currentCoords.y]) {
-		coords.x = 0
-		coords.y += 1
+	coords.X += 1
+	if coords.X >= len(gr.Data[gr.currentCoords.Y]) {
+		coords.X = 0
+		coords.Y += 1
 	}
-	if coords.y >= len(gr.data) || coords.x >= len(gr.data[coords.y]) {
+	if coords.Y >= len(gr.Data) || coords.X >= len(gr.Data[coords.Y]) {
 		return io.EOF
 	}
 	gr.currentCoords = coords
@@ -83,43 +121,43 @@ func (gr *GridReader) advanceCoords() error {
 func (gr GridReader) findAdjuscentCoords() []GridCoords {
 	coords := []GridCoords{}
 
-	if gr.currentCoords.x - 1 >= 0 {
-		coords = append(coords, GridCoords{x: gr.currentCoords.x - 1, y: gr.currentCoords.y})
+	if gr.currentCoords.X-1 >= 0 {
+		coords = append(coords, GridCoords{X: gr.currentCoords.X - 1, Y: gr.currentCoords.Y})
 	}
 
-	if gr.currentCoords.x + 1 < len(gr.data[gr.currentCoords.y]) {
-		coords = append(coords, GridCoords{x: gr.currentCoords.x + 1, y: gr.currentCoords.y})
+	if gr.currentCoords.X+1 < len(gr.Data[gr.currentCoords.Y]) {
+		coords = append(coords, GridCoords{X: gr.currentCoords.X + 1, Y: gr.currentCoords.Y})
 	}
 
-	if gr.currentCoords.y - 1 >= 0 {
-		coords = append(coords, GridCoords{x: gr.currentCoords.x, y: gr.currentCoords.y - 1})
+	if gr.currentCoords.Y-1 >= 0 {
+		coords = append(coords, GridCoords{X: gr.currentCoords.X, Y: gr.currentCoords.Y - 1})
 	}
 
-	if gr.currentCoords.y + 1 < len(gr.data) {
-		coords = append(coords, GridCoords{x: gr.currentCoords.x, y: gr.currentCoords.y + 1})
+	if gr.currentCoords.Y+1 < len(gr.Data) {
+		coords = append(coords, GridCoords{X: gr.currentCoords.X, Y: gr.currentCoords.Y + 1})
 	}
 
-	if gr.currentCoords.y - 1 >= 0 {
+	if gr.currentCoords.Y-1 >= 0 {
 		//up and left
-		if gr.currentCoords.x - 1 >= 0 {
-			coords = append(coords, GridCoords{x: gr.currentCoords.x - 1, y: gr.currentCoords.y - 1})
+		if gr.currentCoords.X-1 >= 0 {
+			coords = append(coords, GridCoords{X: gr.currentCoords.X - 1, Y: gr.currentCoords.Y - 1})
 		}
-		
+
 		//up and right
-		if gr.currentCoords.x + 1 < len(gr.data[gr.currentCoords.y]) {
-			coords = append(coords, GridCoords{x: gr.currentCoords.x + 1, y: gr.currentCoords.y - 1})
+		if gr.currentCoords.X+1 < len(gr.Data[gr.currentCoords.Y]) {
+			coords = append(coords, GridCoords{X: gr.currentCoords.X + 1, Y: gr.currentCoords.Y - 1})
 		}
 	}
 
-	if gr.currentCoords.y + 1 < len(gr.data) {
+	if gr.currentCoords.Y+1 < len(gr.Data) {
 		//down and left
-		if gr.currentCoords.x - 1 >= 0 {
-			coords = append(coords, GridCoords{x: gr.currentCoords.x - 1, y: gr.currentCoords.y + 1})
+		if gr.currentCoords.X-1 >= 0 {
+			coords = append(coords, GridCoords{X: gr.currentCoords.X - 1, Y: gr.currentCoords.Y + 1})
 		}
-		
+
 		//down and right
-		if gr.currentCoords.x + 1 < len(gr.data[gr.currentCoords.y]) {
-			coords = append(coords, GridCoords{x: gr.currentCoords.x + 1, y: gr.currentCoords.y + 1})
+		if gr.currentCoords.X+1 < len(gr.Data[gr.currentCoords.Y]) {
+			coords = append(coords, GridCoords{X: gr.currentCoords.X + 1, Y: gr.currentCoords.Y + 1})
 		}
 	}
 	return coords
@@ -133,20 +171,67 @@ func (gr *GridReader) SetCurrentCoords(gc GridCoords) {
 	gr.currentCoords = gc
 }
 
-func (gr *GridReader) TryMoveUp() (bool) {
-	if gr.currentCoords.y - 1 < 0 {
-		return false
-	}
-
-	gr.currentCoords.y -= 1
-	return true
+func (gr *GridReader) GetValueAtCoords(gc GridCoords) rune {
+	return gr.Data[gc.Y][gc.X]
 }
 
-func (gr *GridReader) TryMoveDown() (bool) {
-	if gr.currentCoords.y + 1 > len(gr.data) {
-		return false
+func (gr *GridReader) SetValueAtCoords(gc GridCoords, value rune) {
+	gr.Data[gc.Y][gc.X] = value
+}
+
+func (gr *GridReader) TryMoveDirection (d Direction) bool {
+	ok, coords := gr.getCoordsForDIrection(d)
+	if ok {
+		gr.currentCoords = coords
+	}
+	return ok
+}
+
+func (g Grid) PrintGrid() {
+	for y := 0; y < len(g.Data); y++ {
+		for x := 0; x < len(g.Data[y]); x++ {
+			fmt.Print(string(g.Data[y][x]))
+		}
+		fmt.Print("\n")
+	}
+}
+
+func (gr *GridReader) getCoordsForDIrection(d Direction) (bool, GridCoords) {
+	switch d {
+
+	case LEFT:
+		if gr.currentCoords.X-1 >= 0 {
+			return true, GridCoords{X: gr.currentCoords.X - 1, Y: gr.currentCoords.Y}
+		}
+	case RIGHT:
+		if gr.currentCoords.X+1 < len(gr.Data[gr.currentCoords.Y]) {
+			return true, GridCoords{X: gr.currentCoords.X + 1, Y: gr.currentCoords.Y}
+		}
+	case UP:
+		if gr.currentCoords.Y-1 >= 0 {
+			return true, GridCoords{X: gr.currentCoords.X, Y: gr.currentCoords.Y - 1}
+		}
+	case DOWN:
+		if gr.currentCoords.Y+1 < len(gr.Data) {
+			return true, GridCoords{X: gr.currentCoords.X, Y: gr.currentCoords.Y + 1}
+		}
+	case UP_LEFT:
+		if gr.currentCoords.Y-1 >= 0 && gr.currentCoords.X-1 >= 0 {
+			return true, GridCoords{X: gr.currentCoords.X - 1, Y: gr.currentCoords.Y - 1}
+		}
+	case UP_RIGHT:
+		if gr.currentCoords.X+1 < len(gr.Data[gr.currentCoords.Y]) && gr.currentCoords.X-1 >= 0 {
+			return true, GridCoords{X: gr.currentCoords.X + 1, Y: gr.currentCoords.Y - 1}
+		}
+	case DOWN_LEFT:
+		if gr.currentCoords.X-1 >= 0 && gr.currentCoords.Y+1 < len(gr.Data) {
+			return true, GridCoords{X: gr.currentCoords.X - 1, Y: gr.currentCoords.Y + 1}
+		}
+	case DOWN_RIGHT:
+		if gr.currentCoords.X+1 < len(gr.Data[gr.currentCoords.Y]) && gr.currentCoords.Y+1 < len(gr.Data) {
+			return true, GridCoords{X: gr.currentCoords.X + 1, Y: gr.currentCoords.Y + 1}
+		}
 	}
 
-	gr.currentCoords.y += 1
-	return true
+	return false, GridCoords{}
 }
