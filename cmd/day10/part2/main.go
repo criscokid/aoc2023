@@ -46,7 +46,7 @@ func main() {
 	}
 
 	reader := grids.NewGridReader(grid)
-	seen := navgiateMaze('J', &reader)
+	seen := navgiateMaze('L', &reader)
 
 	//Fill in empty spaces with 0
 	reader.SetCurrentCoords(grids.GridCoords{X: 0, Y: 0})

@@ -3,6 +3,7 @@ package grids
 import (
 	"fmt"
 	"io"
+	"slices"
 )
 
 type Grid struct {
@@ -30,8 +31,30 @@ func (g *Grid) AddRows(input []string) {
 	}
 }
 
+func (g *Grid) InsertRowAt(row []rune, y int) {
+	if len(g.Data) == y {
+		g.Data = append(g.Data, row)
+		return
+	}
+
+	g.Data = append(g.Data[:y+1], g.Data[y:]...)
+	g.Data[y] = row
+}
+
+func (g *Grid) InsertColumnAt(col []rune, x int){
+	for y := 0; y < len(g.Data); y++ {
+		if len(g.Data[y]) == x {
+			g.Data[y] = append(g.Data[y], col[y])
+			continue
+		}
+
+		g.Data[y] = append(g.Data[y][:x+1], g.Data[y][x:]...)
+		g.Data[y][x] = col[y]
+	}
+}
+
 type GridReader struct {
-	Grid
+	*Grid
 	currentCoords GridCoords
 }
 
@@ -62,7 +85,7 @@ const (
 var mainDirections []Direction = []Direction{UP, DOWN, LEFT, RIGHT}
 var diagonalDirections []Direction = []Direction{UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT}
 
-func NewGridReader(grid Grid) GridReader {
+func NewGridReader(grid *Grid) GridReader {
 	return GridReader{Grid: grid, currentCoords: GridCoords{X: 0, Y: 0}}
 }
 
@@ -70,7 +93,7 @@ func (gr *GridReader) CurrentValue() rune {
 	return gr.Data[gr.currentCoords.Y][gr.currentCoords.X]
 }
 
-func (gr* GridReader) SetCurrentValue(v rune) {
+func (gr *GridReader) SetCurrentValue(v rune) {
 	gr.Data[gr.currentCoords.Y][gr.currentCoords.X] = v
 }
 
@@ -118,51 +141,6 @@ func (gr *GridReader) advanceCoords() error {
 	return nil
 }
 
-func (gr GridReader) findAdjuscentCoords() []GridCoords {
-	coords := []GridCoords{}
-
-	if gr.currentCoords.X-1 >= 0 {
-		coords = append(coords, GridCoords{X: gr.currentCoords.X - 1, Y: gr.currentCoords.Y})
-	}
-
-	if gr.currentCoords.X+1 < len(gr.Data[gr.currentCoords.Y]) {
-		coords = append(coords, GridCoords{X: gr.currentCoords.X + 1, Y: gr.currentCoords.Y})
-	}
-
-	if gr.currentCoords.Y-1 >= 0 {
-		coords = append(coords, GridCoords{X: gr.currentCoords.X, Y: gr.currentCoords.Y - 1})
-	}
-
-	if gr.currentCoords.Y+1 < len(gr.Data) {
-		coords = append(coords, GridCoords{X: gr.currentCoords.X, Y: gr.currentCoords.Y + 1})
-	}
-
-	if gr.currentCoords.Y-1 >= 0 {
-		//up and left
-		if gr.currentCoords.X-1 >= 0 {
-			coords = append(coords, GridCoords{X: gr.currentCoords.X - 1, Y: gr.currentCoords.Y - 1})
-		}
-
-		//up and right
-		if gr.currentCoords.X+1 < len(gr.Data[gr.currentCoords.Y]) {
-			coords = append(coords, GridCoords{X: gr.currentCoords.X + 1, Y: gr.currentCoords.Y - 1})
-		}
-	}
-
-	if gr.currentCoords.Y+1 < len(gr.Data) {
-		//down and left
-		if gr.currentCoords.X-1 >= 0 {
-			coords = append(coords, GridCoords{X: gr.currentCoords.X - 1, Y: gr.currentCoords.Y + 1})
-		}
-
-		//down and right
-		if gr.currentCoords.X+1 < len(gr.Data[gr.currentCoords.Y]) {
-			coords = append(coords, GridCoords{X: gr.currentCoords.X + 1, Y: gr.currentCoords.Y + 1})
-		}
-	}
-	return coords
-}
-
 func (gr GridReader) GetCurrentCoords() GridCoords {
 	return gr.currentCoords
 }
@@ -179,7 +157,7 @@ func (gr *GridReader) SetValueAtCoords(gc GridCoords, value rune) {
 	gr.Data[gc.Y][gc.X] = value
 }
 
-func (gr *GridReader) TryMoveDirection (d Direction) bool {
+func (gr *GridReader) TryMoveDirection(d Direction) bool {
 	ok, coords := gr.getCoordsForDIrection(d)
 	if ok {
 		gr.currentCoords = coords
@@ -195,6 +173,22 @@ func (g Grid) PrintGrid() {
 		fmt.Print("\n")
 	}
 }
+
+func (gr *GridReader) CheckRowForValue(row int, val rune) int {
+	return slices.Index(gr.Data[row], val)
+}
+
+func (gr *GridReader) CheckColumnForValue(col int, val rune) int {
+	for i := 0; i < len(gr.Data); i++ {
+		char := gr.Data[i][col]
+		if char == val {
+			return i
+		} 
+	}
+
+	return -1
+}
+
 
 func (gr *GridReader) getCoordsForDIrection(d Direction) (bool, GridCoords) {
 	switch d {
